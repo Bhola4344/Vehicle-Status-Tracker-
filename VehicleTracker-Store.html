@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vehicle Tracking</title>
+  <link rel="icon" type="image/jpeg" href="logo.jpg">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <audio id="notifySound">
+    <source src="https://actions.google.com/sounds/v1/doors/doorbell_chime.ogg" type="audio/ogg">
+  </audio>
+  <link rel="stylesheet" href="style-store.css">
+</head>
+
+<body>
+  <div id="toast">Saved Successfully!</div>
+
+  <div class="container-fluid">
+    <div class="card mx-auto">
+
+      <header class="header d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-3">
+          <img src="logo.jpg" alt="Logo" class="logo" style="width:auto; height:75px;">
+          <div class="title">Balaji Action Buildwell Pvt. Ltd.<br><small style="font-weight:200;">Vehicle
+              Tracking</small></div>
+        </div>
+        <!-- Logout Button -->
+        <div class="d-flex align-items-center gap-3">
+          <span id="welcomeUser" class="fw-bold" style="color:#0F3C73;"></span>
+          <button class="btn btn-outline-danger btn-sm" onclick="logout()">Logout</button>
+        </div>
+      </header>
+
+      <div class="status-board card mb-3 p-3">
+        <div class="d-flex justify-content-between flex-wrap" id="statusBoard">
+
+          <div class="status-card bg-info text-white p-2 rounded text-center flex-fill m-1">
+            Reported : <span id="totalReported">0</span>
+          </div>
+
+          <div class="status-card bg-primary text-white p-2 rounded text-center flex-fill m-1">
+            In-process : <span id="totalEntered">0</span>
+          </div>
+
+          <div class="status-card bg-secondary text-white p-2 rounded flex-fill m-1">
+            <i class="bi bi-flask"></i>
+            Lab-Test : <span id="totalLabTesting">0</span>
+          </div>
+
+          <div class="status-card bg-warning text-dark p-2 rounded flex-fill m-1">
+            <i class="bi bi-arrow-down-circle"></i>
+            Unloading : <span id="totalUnloading">0</span>
+          </div>
+
+          <div class="status-card bg-secondary text-white p-2 rounded flex-fill m-1">
+            <i class="bi bi-arrow-up-circle"></i>
+            Loading : <span id="totalLoading">0</span>
+          </div>
+
+          <div class="status-card bg-success text-white p-2 rounded text-center flex-fill m-1">
+            Complete : <span id="totalOut">0</span>
+          </div>
+
+          <div class="status-card bg-danger text-white p-2 rounded text-center flex-fill m-1">
+            Pending : <span id="totalPending">0</span>
+          </div>
+
+          <div class="status-card bg-dark text-white p-2 rounded text-center flex-fill m-1">
+            Hold : <span id="totalHold">0</span>
+          </div>
+
+        </div>
+      </div>
+
+
+
+      <div class="d-flex flex-column flex-sm-row justify-content-between mb-2 mt-2 align-items-sm-center">
+        <div class="d-flex align-items-center gap-2 mb-2 mb-sm-0">
+          <!-- Search (same as before) -->
+          <input type="text" class="form-control search-input" placeholder="Search..." oninput="renderTable()" />
+          <!-- Start Date -->
+          <input type="date" id="startDate" class="form-control search-input" style="max-width: 160px;"
+            onchange="renderTable()" />
+
+          <!-- End Date -->
+          <input type="date" id="endDate" class="form-control search-input" style="max-width: 160px;"
+            onchange="renderTable()" />
+          <button class="btn btn-sm" onclick="toggleSound()" id="soundBtn" style="
+            width:35px;
+            height:35px;
+            border-radius:50%;
+            background: linear-gradient(145deg, #b3d1f7, #8aa4d1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            color:#fff;
+            border:none;
+            font-size:18px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            cursor:pointer;
+            transition: all 0.3s ease;
+          " onmouseover="this.style.transform='scale(1.2)';" onmouseout="this.style.transform='scale(1)';">🔊</button>
+        </div>
+
+        <!-- Refresh Button (same position, untouched) -->
+
+        <!-- Refresh Button (same position, untouched) -->
+        <button class="btn btn-primary btn-sm btn-custom" id="refreshBtn" onclick="refreshData(this)">Refresh</button>
+
+      </div>
+
+
+      <div class="table-container">
+        <table id="dataTable" class="table table-sm table-striped table-hover">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Vehicle Type</th>
+              <th>Vehicle No</th>
+              <th>Material</th>
+              <th>Qty</th>
+              <th>Reporting Gate</th>
+              <th>Reporting Time</th>
+              <th>Driver Mobile</th>
+              <th>Remark</th>
+              <th>Store Response</th>
+              <th>Response Time</th>
+              <th>Response By</th>
+              <th>Vehicle Status</th>
+              <th>Store Remark</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="pagination" id="pagination"></div>
+    </div>
+  </div>
+
+  <script>
+    const SHEET_URL = "https://script.google.com/macros/s/AKfycbzmYWRmyRYFlDUmPagec97dv9iet2s_P5K7y1wVdNh5GUi51tyffZtE2ZIa0C-2FdZS/exec";
+    let lastDataCount = 0;
+
+    let data = [];
+    let currentPage = 1;
+    const rowsPerPage = 12;
+    let dropdownCache = {};
+
+    // Check login status
+    if (!sessionStorage.getItem('loggedIn')) {
+      window.location.href = 'index.html';
+    }
+
+    function logout() {
+      sessionStorage.removeItem('loggedIn');
+      window.location.href = 'index.html';
+    }
+
+    function showToast(message, bgColor = '#28a745') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.style.background = bgColor;
+      toast.style.display = 'block';
+      toast.style.opacity = 1;
+
+      setTimeout(() => {
+        toast.style.transition = "opacity 0.5s";
+        toast.style.opacity = 0;
+        setTimeout(() => toast.style.display = 'none', 500);
+      }, 2000);
+    }
+
+
+
+
+    function renderTable() {
+      const tbody = document.querySelector("#dataTable tbody");
+      const search = document.querySelector(".search-input").value.toLowerCase();
+
+      const startVal = document.getElementById("startDate").value;
+      const endVal = document.getElementById("endDate").value;
+
+      const startDate = startVal ? new Date(startVal + "T00:00:00") : null;
+      const endDate = endVal ? new Date(endVal + "T23:59:59") : null;
+
+      let filtered = data.filter(row => {
+        let rowDate = null;
+        if (row.timestamp) {
+          const cleanTS = row.timestamp.replace(/(\d{2})-(\d{2})-(\d{4})/, "$3-$2-$1");
+          rowDate = new Date(cleanTS);
+        }
+
+        if (startDate && rowDate && rowDate < startDate) return false;
+        if (endDate && rowDate && rowDate > endDate) return false;
+
+        const rowStr = Object.values(row).join(" ").toLowerCase();
+        if (search && !rowStr.includes(search)) return false;
+
+        return true;
+      });
+
+      // IMPORTANT:
+      // ------------------------------------
+      window.filteredDataForDashboard = filtered;
+      updateStatusBoard(filtered);
+      // ------------------------------------
+
+      filtered = filtered.reverse();
+
+      const totalPages = Math.ceil(filtered.length / rowsPerPage);
+      if (currentPage > totalPages) currentPage = 1;
+
+      const start = (currentPage - 1) * rowsPerPage;
+      const pageData = filtered.slice(start, start + rowsPerPage);
+
+      tbody.innerHTML = "";
+
+      if (pageData.length === 0) {
+        tbody.innerHTML = `
+    <tr>
+      <td colspan="14" style="text-align:center; padding:15px; color:red; font-weight:bold;">
+        No record found
+      </td>
+    </tr>
+  `;
+        renderPagination(0);
+        return;
+      }
+
+
+      pageData.forEach(row => {
+        const tr = document.createElement("tr");
+
+        const reportingTime = row.timestamp ? formatDate(row.timestamp) : "-";
+        const driverMobile = row.Mobile || "-";
+        const remark = row.Notes || "-";
+        const responseTime = row.ResponseTime ? formatDate(row.ResponseTime) : "-";
+
+        tr.innerHTML = `
+      <td>${row.ID}</td>
+      <td>${row["Vehicle Type"]}</td>
+      <td>${row["Vehicle No"]}</td>
+      <td>${row.Material}</td>
+      <td>${row.Quantity}</td>
+      <td>${row.Gate}</td>
+      <td>${reportingTime}</td>
+      <td>${driverMobile}</td>
+      <td class="remark-cell">${remark}</td>
+
+      <td>
+        <select class="form-select form-select-sm response-select"
+          onchange="updateField(${row.ID}, 'Response', this.value);applyResponseColor(this)">
+          <option value="Waiting">Waiting</option>
+          <option>Entry-C34A</option>
+          <option>Entry-C34</option>
+          <option>Entry-C3</option>
+          <option>Send to C34A</option>
+          <option>Send to C34</option>
+          <option>Send to C3</option>
+          <option>Out</option>
+        </select>
+      </td>
+
+      <td>${responseTime}</td>
+      <td>${row.RespondBy ? getFirstTwoWords(row.RespondBy) : '-'}</td>
+
+      <td>
+        <select class="form-select form-select-sm status-select"
+          onchange="updateField(${row.ID}, 'Status', this.value);applyStatusColor(this)">
+          <option>Pending</option>
+          <option>In Process</option>
+          <option>Lab-Test</option>
+          <option>Unloading</option>
+          <option>Hold</option>
+          <option>Complete</option>
+          <option>Loading</option>
+        </select>
+      </td>
+
+      <td><input type="text" class="form-control form-control-sm"
+          value="${row.Remark || ''}"
+          onchange="updateField(${row.ID}, 'Remark', this.value)" /></td>
+
+      <td><button class="btn btn-success btn-sm btn-custom" onclick="updateRow(${row.ID}, this)">Save</button></td>
+    `;
+
+        tbody.appendChild(tr);
+
+        const responseSelect = tr.querySelector(".response-select");
+        const statusSelect = tr.querySelector(".status-select");
+
+        responseSelect.value = row.Response;
+        statusSelect.value = row.Status;
+
+        dropdownCache[row.ID] = { Response: row.Response, Status: row.Status };
+
+        applyResponseColor(responseSelect);
+        applyStatusColor(statusSelect);
+      });
+
+      renderPagination(totalPages);
+    }
+
+
+    function applyResponseColor(select) {
+      select.style.fontWeight = "bold";
+      select.style.color = select.value === "Waiting" ? "red" : "green";
+    }
+
+    function applyStatusColor(select) {
+      select.style.fontWeight = "bold";
+      if (["Pending", "Hold"].includes(select.value)) select.style.color = "red";
+      else if (["In Process", "Lab-Test", "Unloading", "Loading"].includes(select.value)) select.style.color = "orange";
+      else if (select.value === "Complete") select.style.color = "green";
+      else select.style.color = "black";
+    }
+
+    function updateField(id, field, value) {
+      const row = data.find(r => r.ID == id);
+      if (!row) return;
+
+      row[field] = value;
+
+      // Update timestamp and RespondBy only if Response changed from Waiting
+      if (field === "Response" && value !== "Waiting") {
+        row.ResponseTime = new Date().toISOString();
+        row.RespondBy = sessionStorage.getItem("userName") || "Unknown";
+      }
+
+      // ⚡ Save to cache immediately so table remembers before save
+      dropdownCache[id] = {
+        Response: row.Response,
+        Status: row.Status
+      };
+
+      // Only apply color, do NOT re-render table here
+      if (field === "Response") {
+        const select = document.querySelector(`select.response-select[onchange*="updateField(${id}"]`);
+        if (select) applyResponseColor(select);
+      } else if (field === "Status") {
+        const select = document.querySelector(`select.status-select[onchange*="updateField(${id}"]`);
+        if (select) applyStatusColor(select);
+      }
+    }
+
+
+    async function updateRow(id, btn) {
+      const row = data.find(r => r.ID == id);
+      const formData = new FormData();
+
+      formData.append("ID", row.ID);
+      formData.append("Status", row.Status);
+      formData.append("Remark", row.Remark);
+      formData.append("Response", row.Response);
+      formData.append("ResponseTime", row.ResponseTime || "");
+      formData.append("RespondBy", row.RespondBy || "");
+
+      btn.disabled = true;
+      btn.textContent = "Saving...";
+
+      try {
+        await fetch(SHEET_URL, { method: "POST", body: formData });
+        showToast("✔ Saved Successfully!");
+        fetchData(false);
+      } catch (e) {
+        showToast("⚠ Saved! (Network Issue)", "#dc3545");
+        fetchData(false);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Save";
+      }
+    }
+
+    async function refreshData(btn) {
+      btn.disabled = true;
+      btn.textContent = "Refreshing...";
+      try {
+        await fetchData(false);
+      } catch (e) {
+        showToast("Error fetching data", "#dc3545");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Refresh";
+      }
+    }
+
+    fetchData();
+    setInterval(() => fetchData(true), 30000);
+
+    function formatDate(dt) {
+      if (!dt) return "-";
+
+      // Google Sheet se aayi string ko parse karna
+      let d;
+      if (typeof dt === "string") {
+        // Sheet me 24/11/2025, 12:57 AM aata hai
+        const parts = dt.split(","); // ["24/11/2025", " 12:57 AM"]
+        if (parts.length === 2) {
+          const dateParts = parts[0].trim().split("/"); // ["24","11","2025"]
+          const timeParts = parts[1].trim().split(/[: ]/); // ["12","57","AM"]
+          let hour = parseInt(timeParts[0], 10);
+          const minute = parseInt(timeParts[1], 10);
+          const ampm = timeParts[2];
+
+          if (ampm.toUpperCase() === "PM" && hour !== 12) hour += 12;
+          if (ampm.toUpperCase() === "AM" && hour === 12) hour = 0;
+
+          d = new Date(
+            parseInt(dateParts[2], 10),
+            parseInt(dateParts[1], 10) - 1,
+            parseInt(dateParts[0], 10),
+            hour,
+            minute
+          );
+        } else {
+          d = new Date(dt); // fallback
+        }
+      } else {
+        d = new Date(dt);
+      }
+
+      const now = new Date();
+      const isToday =
+        d.getDate() === now.getDate() &&
+        d.getMonth() === now.getMonth() &&
+        d.getFullYear() === now.getFullYear();
+
+      let displayHour = d.getHours();
+      let displayMinute = String(d.getMinutes()).padStart(2, "0");
+      const ampm = displayHour >= 12 ? "PM" : "AM";
+      displayHour = displayHour % 12;
+      if (displayHour === 0) displayHour = 12;
+
+      const timeStr = `${String(displayHour).padStart(2, "0")}:${displayMinute} ${ampm}`;
+
+      if (isToday) return timeStr; // aaj ka time sirf show kare
+      const day = String(d.getDate()).padStart(2, "0");
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const year = d.getFullYear();
+
+      return `${day}/${month}/${year}, ${timeStr}`;
+    }
+
+    function renderPagination(totalPages) {
+      const pag = document.getElementById("pagination");
+      pag.innerHTML = "";
+
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+
+        if (i === currentPage) btn.classList.add("active");
+
+        btn.onclick = () => {
+          currentPage = i;
+          renderTable();
+        };
+        pag.appendChild(btn);
+      }
+    }
+
+    async function fetchData(isAutoRefresh = false) {
+      try {
+        const res = await fetch(SHEET_URL);
+        const fetchedData = await res.json();
+
+        // ----------- NEW CODE -----------
+        if (fetchedData.length > lastDataCount && lastDataCount !== 0) {
+          if (soundEnabled) {
+            playAlertSound()
+          }
+        }
+        lastDataCount = fetchedData.length; // update last count
+
+        fetchedData.forEach(row => {
+          if (isAutoRefresh && dropdownCache[row.ID]) {
+            row.Response = dropdownCache[row.ID].Response;
+            row.Status = dropdownCache[row.ID].Status;
+          } else {
+            row.Response = row.Response || "Waiting";
+            row.Status = row.Status || "Pending";
+          }
+        });
+
+        data = fetchedData;
+
+        renderTable();
+
+        // ⭐ MOST IMPORTANT FIX ⭐
+        updateStatusBoard(window.filteredDataForDashboard || data);
+
+      } catch (e) {
+        console.log("Error fetching data:", e);
+      }
+    }
+
+
+
+    function updateStatusBoard(filtered) {
+      const list = filtered || [];
+
+      document.getElementById("totalReported").innerText = list.length;
+      document.getElementById("totalEntered").innerText =
+        list.filter(d => d.Status === "In Process" || d.Status === "Entered").length;
+
+      document.getElementById("totalLabTesting").innerText =
+        list.filter(d => d.Status === "Lab-Test").length;
+
+      document.getElementById("totalUnloading").innerText =
+        list.filter(d => d.Status === "Unloading").length;
+
+      document.getElementById("totalLoading").innerText =
+        list.filter(d => d.Status === "Loading").length;
+
+      document.getElementById("totalPending").innerText =
+        list.filter(d => d.Status === "Pending").length;
+
+      document.getElementById("totalHold").innerText =
+        list.filter(d => d.Status === "Hold").length;
+
+      document.getElementById("totalOut").innerText =
+        list.filter(d => d.Status === "Complete" || d.Status === "Out").length;
+    }
+
+
+
+    window.onload = function () {
+      const d = new Date();
+
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+
+      const today = `${yyyy}-${mm}-${dd}`;
+
+      document.getElementById("startDate").value = today;
+      document.getElementById("endDate").value = today;
+
+      renderTable();
+    };
+
+
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const userName = sessionStorage.getItem("userName") || "Guest";
+      document.getElementById("welcomeUser").innerText = "Welcome: " + userName;
+    });
+
+    function getFirstTwoWords(fullName) {
+      if (!fullName) return "-";
+      const parts = fullName.trim().split(" ");
+      return parts.slice(0, 2).join(" "); // first 2 words
+    }
+
+    function playAlertSound() {
+      if (!soundEnabled) return; // 🔇 OFF hoga to sound nahi bajega
+
+      const audioSrc = "https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg";
+
+      for (let i = 0; i < 1; i++) {
+        setTimeout(() => {
+          const beep = new Audio(audioSrc);
+          beep.play();
+        }, i * 500);
+      }
+    }
+
+    let soundEnabled = true;
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+
+      document.getElementById("soundBtn").innerText =
+        soundEnabled ? "🔊" : "🔇";
+    }
+  </script>
+</body>
+
+</html>

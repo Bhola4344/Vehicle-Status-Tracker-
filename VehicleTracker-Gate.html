@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Vehicle Reporting</title>
+  <link rel="icon" type="image/jpeg" href="logo.jpg">
+  <!-- Bootstrap CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <audio id="notifySound">
+    <source src="https://actions.google.com/sounds/v1/doors/doorbell_chime.ogg" type="audio/ogg">
+  </audio>
+  <link rel="stylesheet" href="style-gate.css">
+</head>
+
+<body>
+  <div class="container-fluid">
+    <div class="card mx-auto">
+      <header class="header d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-3">
+          <img src="logo.jpg" alt="Logo" class="logo" style="width:auto; height:75px;">
+          <div class="title">Balaji Action Buildwell Pvt. Ltd.<br><small style="font-weight:200;">Vehicle
+              Reporting</small></div>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <span id="welcomeUser" class="fw-bold" style="color:#0F3C73;"></span>
+          <button class="btn btn-outline-danger btn-sm" onclick="logout()">Logout</button>
+        </div>
+      </header>
+
+      <!-- FORM -->
+      <form id="vehicleForm" autocomplete="off" onsubmit="return false;">
+        <div class="row g-3">
+          <div class="col-12 col-md-4">
+            <div class="input-group">
+              <span class="input-group-text">🚛</span>
+              <select id="vtype" name="vtype" class="form-select">
+                <option value="">Select Vehicle Type</option>
+                <option>TRUCK</option>
+                <option>TRAILER</option>
+                <option>TANKER</option>
+                <option>CONTAINER</option>
+                <option>PICKUP</option>
+                <option>TRACTOR</option>
+                <option>OTHER</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-4">
+            <div class="input-group">
+              <span class="input-group-text">🔢</span>
+              <input id="vehicle" name="vehicle" type="text" placeholder="Enter Vehicle Number" class="form-control"
+                oninput="this.value=this.value.toUpperCase();" />
+            </div>
+          </div>
+
+          <div class="col-12 col-md-4">
+            <div class="input-group">
+              <span class="input-group-text">📦</span>
+              <input id="material" name="material" type="text" placeholder="Enter Material" class="form-control"
+                oninput="this.value=this.value.toUpperCase();" />
+            </div>
+          </div>
+
+          <div class="col-12 col-md-4">
+            <div class="input-group">
+              <span class="input-group-text">⚖️</span>
+              <input id="qty" name="qty" type="text" placeholder="Enter Quantity" class="form-control"
+                oninput="this.value=this.value.toUpperCase();" />
+            </div>
+          </div>
+
+          <div class="col-12 col-md-4">
+            <div class="input-group">
+              <span class="input-group-text">🚪</span>
+              <select id="gate" name="gate" class="form-select">
+                <option value="">Select Reporting Gate</option>
+                <option>C34A-GATE</option>
+                <option>C34-GATE</option>
+                <option>C3-GATE</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-4">
+            <div class="input-group">
+              <span class="input-group-text">📱</span>
+              <input id="mobile" name="mobile" type="text" placeholder="Enter Mobile Number" class="form-control" />
+            </div>
+          </div>
+
+          <div class="col-12">
+            <textarea id="notes" name="notes" placeholder="Remark..." class="form-control"
+              oninput="this.value=this.value.toUpperCase();"></textarea>
+          </div>
+        </div>
+
+
+        <div class="d-flex justify-content-end gap-2 mt-3">
+          <button type="button" class="btn btn-outline-secondary" onclick="resetForm()">Reset</button>
+          <button type="button" class="btn btn-primary" onclick="submitForm()">Save Entry</button>
+        </div>
+      </form>
+
+      <!-- READ-ONLY TABLE BELOW FORM -->
+      <div class="d-flex flex-column flex-sm-row justify-content-between mb-2 mt-2 align-items-sm-center">
+        <div class="d-flex align-items-center gap-2 mb-2 mb-sm-0">
+          <!-- Existing Search -->
+          <input type="text" id="tableSearch" class="form-control search-input" placeholder="Search..."
+            oninput="renderReadOnlyTable()" />
+
+          <!-- Start Date -->
+          <input type="date" id="startDate" class="form-control search-input" style="max-width: 160px;"
+            onchange="renderReadOnlyTable()" />
+
+          <!-- End Date -->
+          <input type="date" id="endDate" class="form-control search-input" style="max-width: 160px;"
+            onchange="renderReadOnlyTable()" />
+          <!-- Refresh Button (same position, untouched) -->
+          <button class="btn btn-sm" onclick="toggleSound()" id="soundBtn" style="
+            width:35px;
+            height:35px;
+            border-radius:50%;
+            background: linear-gradient(145deg, #b3d1f7, #8aa4d1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            color:#fff;
+            border:none;
+            font-size:18px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            cursor:pointer;
+            transition: all 0.3s ease;
+          " onmouseover="this.style.transform='scale(1.2)';" onmouseout="this.style.transform='scale(1)';">🔊</button>
+        </div>
+      </div>
+
+      <div class="table-container mt-1">
+        <table id="readOnlyTable" class="table table-sm table-striped table-hover mt-2">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Vehicle Type</th>
+              <th>Vehicle No</th>
+              <th>Material</th>
+              <th>Qty</th>
+              <th>Reporting Gate</th>
+              <th>Reporting Time</th>
+              <th>Driver Mobile</th>
+              <th>Remark</th>
+              <th>Store Response</th>
+              <th>Response Time</th>
+              <th>Response By</th>
+              <th>Vehicle Status</th>
+              <th>Store Remark</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="readOnlyPagination"></div>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div id="toast">Saved Successfully!</div>
+
+  <script>
+    let updatedRows = {};
+
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzMtroct5uR319DRLzgGVJUoEdD0PfXrl6A8XNyKAALgjQJcs2RjzDi_NPepQiDg57E/exec";
+    let data = [];
+    let currentPage = 1;
+    const rowsPerPage = 12;
+    let isTyping = false;
+
+    // Check login
+    if (!sessionStorage.getItem('loggedIn')) {
+      window.location.href = 'index.html';
+    }
+
+    // Logout function
+    function logout() {
+      sessionStorage.removeItem('loggedIn');
+      window.location.href = 'index.html';
+    }
+
+    const searchBox = document.getElementById("tableSearch");
+    searchBox.addEventListener("input", () => { isTyping = true; renderReadOnlyTable(); });
+    searchBox.addEventListener("blur", () => { isTyping = false; });
+
+    function resetForm() { document.getElementById("vehicleForm").reset(); }
+
+    function showToast(msg, bgColor = '#28a745') {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.style.background = bgColor;
+      toast.style.display = 'block';
+      toast.style.opacity = 1;
+      setTimeout(() => {
+        toast.style.transition = "opacity 0.5s";
+        toast.style.opacity = 0;
+        setTimeout(() => toast.style.display = 'none', 500);
+      }, 2000);
+    }
+
+    function submitForm() {
+      let msg = "";
+      if (!document.getElementById("vtype").value.trim()) msg += "Select Vehicle Type\n";
+      if (!document.getElementById("vehicle").value.trim()) msg += ", Enter Vehicle Number\n";
+      if (!document.getElementById("material").value.trim()) msg += ", Enter Material\n";
+      const qty = document.getElementById("qty").value.trim();
+      if (!qty) msg += ", Enter Quantity\n";
+      if (!document.getElementById("gate").value.trim()) msg += ", Select Reporting Gate\n";
+      const mobile = document.getElementById("mobile").value.trim();
+      if (mobile && !/^\d{10}$/.test(mobile)) msg += ", Mobile Number Must be 10 Digits\n";
+      if (msg) { showToast("Please Enter:\n" + msg, "#dc3545"); return; }
+
+      const fd = new FormData(document.getElementById("vehicleForm"));
+      fd.append("timestamp", new Date().toLocaleString('en-IN'));
+
+      const btn = document.querySelector(".btn-primary");
+      btn.disabled = true;
+      btn.textContent = "Saving...";
+
+      fetch(SCRIPT_URL, { method: "POST", body: fd })
+        .then(() => { showToast("✔ Saved Successfully!"); resetForm(); fetchReadOnlyData(); })
+        .catch(() => { showToast("Error: Check script URL", "#dc3545"); })
+        .finally(() => { btn.disabled = false; btn.textContent = "Save Entry"; });
+    }
+
+    let lastResponseMap = {};  // store last responses
+
+    async function fetchReadOnlyData() {
+      try {
+        const res = await fetch(SCRIPT_URL);
+        const newData = await res.json();
+
+        // Detect Response Update
+        newData.forEach(row => {
+          const id = row.ID;
+          const newResponse = row.Response;
+
+          if (lastResponseMap[id] && lastResponseMap[id] !== newResponse) {
+            if (newResponse && newResponse !== "Waiting") {
+              // Thoda delay, phir sound + shake
+              setTimeout(() => playAlertSound(id), 100);
+            }
+          }
+
+          lastResponseMap[id] = newResponse;
+        });
+
+
+        data = newData;
+        renderReadOnlyTable();
+
+      } catch (e) {
+        console.log("Error fetching table data:", e);
+      }
+    }
+
+    function renderReadOnlyTable() {
+
+      const tbody = document.querySelector("#readOnlyTable tbody");
+      const search = document.getElementById("tableSearch").value.toLowerCase();
+
+      const startVal = document.getElementById("startDate").value;
+      const endVal = document.getElementById("endDate").value;
+
+      const startDate = startVal ? new Date(startVal + "T00:00:00") : null;
+      const endDate = endVal ? new Date(endVal + "T23:59:59") : null;
+
+      let filtered = data.filter(row => {
+        let rowDate = null;
+        if (row.timestamp) {
+          const cleanTS = row.timestamp.replace(/(\d{2})-(\d{2})-(\d{4})/, "$3-$2-$1");
+          rowDate = new Date(cleanTS);
+        }
+
+        if (startDate && rowDate && rowDate < startDate) return false;
+        if (endDate && rowDate && rowDate > endDate) return false;
+
+        // Search filter
+        const tempRow = { ...row, Response: row.Response || 'Waiting' };
+        const rowStr = Object.values(tempRow).join(" ").toLowerCase();
+        if (search && !rowStr.includes(search)) return false;
+
+        return true;
+      }).reverse();
+
+
+      const totalPages = Math.ceil(filtered.length / rowsPerPage);
+      if (currentPage > totalPages) currentPage = 1;
+      const start = (currentPage - 1) * rowsPerPage;
+      const pageData = filtered.slice(start, start + rowsPerPage);
+
+      tbody.innerHTML = "";
+
+      if (pageData.length === 0) {
+        tbody.innerHTML = `
+    <tr>
+      <td colspan="14" style="text-align:center; padding:15px; color:red; font-weight:bold;">
+        No record found
+      </td>
+    </tr>
+  `;
+        renderPagination(0);
+        return;
+      }
+
+      pageData.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.setAttribute("data-id", row.ID);
+        const formattedTime = formatDateSheet(row.timestamp);
+
+        tr.innerHTML = `
+      <td>${row.ID}</td>
+      <td>${row["Vehicle Type"]}</td>
+      <td>${row["Vehicle No"]}</td>
+      <td>${row.Material}</td>
+      <td>${row.Quantity}</td>
+      <td>${row.Gate}</td>
+      <td>${formattedTime}</td>
+      <td>${row.Mobile ? row.Mobile : '-'}</td>
+      <td class="remark-cell">${row.Notes ? row.Notes : '-'}</td>
+      <td><span class="response-cell">${row.Response || 'Waiting'}</span></td>
+      <td>
+        ${row.ResponseTime
+            ? (() => {
+              const parts = row.ResponseTime.split(", ");
+              const dateParts = parts[0].split("/");
+              const timeParts = parts[1].split(/[: ]/);
+
+              let h = parseInt(timeParts[0], 10);
+              const m = timeParts[1];
+              const ampm = timeParts[2];
+
+              if (ampm === "PM" && h < 12) h += 12;
+              if (ampm === "AM" && h === 12) h = 0;
+
+              const d = new Date(
+                parseInt(dateParts[2], 10),
+                parseInt(dateParts[1], 10) - 1,
+                parseInt(dateParts[0], 10),
+                h,
+                parseInt(m, 10)
+              );
+
+              const now = new Date();
+              const isToday = d.toDateString() === now.toDateString();
+
+              const hours12 = ((d.getHours() + 11) % 12 + 1);
+              return isToday ? `${hours12}:${m} ${ampm}` : row.ResponseTime;
+            })()
+            : "-"}
+      </td>
+      <td>${row.RespondBy ? getFirstTwoWords(row.RespondBy) : '-'}</td>
+      <td><span class="status-cell">${row.Status || 'Pending'}</span></td>
+      <td>${row.Remark ? row.Remark : '-'}</td>
+    `;
+
+        tbody.appendChild(tr);
+
+        const responseCell = tr.querySelector(".response-cell");
+        responseCell.style.fontWeight = "bold";
+        responseCell.style.color = responseCell.textContent === "Waiting" ? "red" : "green";
+
+        const statusCell = tr.querySelector(".status-cell");
+        statusCell.style.fontWeight = "bold";
+        if (["Pending", "Hold"].includes(statusCell.textContent)) statusCell.style.color = "red";
+        else if (["In Process", "Lab-Test", "Unloading", "Loading"].includes(statusCell.textContent)) statusCell.style.color = "orange";
+        else if (statusCell.textContent === "Complete") statusCell.style.color = "green";
+      });
+
+      // Pagination
+      const pag = document.getElementById("readOnlyPagination");
+      pag.innerHTML = "";
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        if (i === currentPage) btn.classList.add("active");
+        btn.onclick = () => { currentPage = i; renderReadOnlyTable(); };
+        pag.appendChild(btn);
+      }
+    }
+
+    // Set default 1-day date range on page load
+    document.addEventListener("DOMContentLoaded", () => {
+      const today = new Date();
+      const yesterday = new Date();
+      const formatDate = (d) => {
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const yyyy = d.getFullYear();
+        return `${yyyy}-${mm}-${dd}`;
+      };
+
+      document.getElementById("startDate").value = formatDate(today);
+      document.getElementById("endDate").value = formatDate(today);
+
+      // Render table immediately with default dates
+      renderReadOnlyTable();
+    });
+
+
+
+    function formatDateSheet(timestamp) {
+      if (!timestamp) return '-';
+      const d = new Date(timestamp);
+      if (isNaN(d)) return timestamp;
+
+      const now = new Date();
+      const isToday = d.toDateString() === now.toDateString();
+
+      let hours = d.getHours();
+      let minutes = String(d.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      if (hours === 0) hours = 12;
+      hours = String(hours).padStart(2, '0');
+
+      if (isToday) {
+        return `${hours}:${minutes} ${ampm}`;
+      } else {
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        return `${day}/${month}/${year}, ${hours}:${minutes} ${ampm}`;
+      }
+    }
+
+    fetchReadOnlyData();
+    setInterval(() => { if (!isTyping) fetchReadOnlyData(); }, 5000);
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const userName = sessionStorage.getItem("userName") || "Guest";
+      document.getElementById("welcomeUser").innerText = "Welcome: " + userName;
+    });
+    function getFirstTwoWords(fullName) {
+      if (!fullName) return "-";
+      const parts = fullName.trim().split(" ");
+      return parts.slice(0, 2).join(" "); // first 2 words
+    }
+
+    function playAlertSound(id) {
+      if (!soundEnabled) return;
+
+      const audioSrc = "https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg";
+      const beep = new Audio(audioSrc);
+
+      const rowElement = document.querySelector(`tr[data-id='${id}']`);
+      if (!rowElement) return;
+
+      // Shake ON + Yellow ON
+      rowElement.classList.add("shake", "highlight-yellow");
+
+      beep.onloadedmetadata = () => {
+
+        beep.play();
+
+        const shakeTime = beep.duration * 1000;
+
+        setTimeout(() => {
+          rowElement.classList.remove("shake", "highlight-yellow");
+        }, shakeTime);
+      };
+    }
+
+
+    let soundEnabled = true;
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById("soundBtn").innerText =
+        soundEnabled ? "🔊" : "🔇";
+    }
+
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
