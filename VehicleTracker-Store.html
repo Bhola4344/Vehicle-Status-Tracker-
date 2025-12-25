@@ -35,38 +35,43 @@
       <div class="status-board card mb-3 p-3">
         <div class="d-flex justify-content-between flex-wrap" id="statusBoard">
 
-          <div class="status-card bg-info text-white p-2 rounded text-center flex-fill m-1">
+          <div class="status-card bg-info text-white p-2 rounded text-center flex-fill m-1"
+            onclick="filterByStatus('')">
             Reported : <span id="totalReported">0</span>
           </div>
 
-          <div class="status-card bg-primary text-white p-2 rounded text-center flex-fill m-1">
+          <div class="status-card bg-primary text-white p-2 rounded text-center flex-fill m-1"
+            onclick="filterByStatus('In Process')">
             In-process : <span id="totalEntered">0</span>
           </div>
 
-          <div class="status-card bg-secondary text-white p-2 rounded flex-fill m-1">
-            <i class="bi bi-flask"></i>
+          <div class="status-card bg-secondary text-white p-2 rounded flex-fill m-1"
+            onclick="filterByStatus('Lab-Test')">
             Lab-Test : <span id="totalLabTesting">0</span>
           </div>
 
-          <div class="status-card bg-warning text-dark p-2 rounded flex-fill m-1">
-            <i class="bi bi-arrow-down-circle"></i>
+          <div class="status-card bg-warning text-dark p-2 rounded flex-fill m-1" onclick="filterByStatus('Unloading')">
             Unloading : <span id="totalUnloading">0</span>
           </div>
 
-          <div class="status-card bg-secondary text-white p-2 rounded flex-fill m-1">
-            <i class="bi bi-arrow-up-circle"></i>
+          <div class="status-card bg-secondary text-white p-2 rounded flex-fill m-1"
+            onclick="filterByStatus('Loading')">
             Loading : <span id="totalLoading">0</span>
           </div>
 
-          <div class="status-card bg-success text-white p-2 rounded text-center flex-fill m-1">
+          <div class="status-card bg-success text-white p-2 rounded text-center flex-fill m-1"
+            onclick="filterByStatus('Complete')">
             Complete : <span id="totalOut">0</span>
           </div>
 
-          <div class="status-card bg-danger text-white p-2 rounded text-center flex-fill m-1">
+          <div class="status-card bg-danger text-white p-2 rounded text-center flex-fill m-1"
+            onclick="filterByStatus('Pending')">
             Pending : <span id="totalPending">0</span>
           </div>
 
-          <div class="status-card bg-dark text-white p-2 rounded text-center flex-fill m-1">
+
+          <div class="status-card bg-dark text-white p-2 rounded text-center flex-fill m-1"
+            onclick="filterByStatus('Hold')">
             Hold : <span id="totalHold">0</span>
           </div>
 
@@ -78,15 +83,30 @@
       <div class="d-flex flex-column flex-sm-row justify-content-between mb-2 mt-2 align-items-sm-center">
         <div class="d-flex align-items-center gap-2 mb-2 mb-sm-0">
           <!-- Search (same as before) -->
-          <input type="text" class="form-control search-input" placeholder="Search..." oninput="renderTable()" />
+          <input type="text" class="form-control search-input common-input" placeholder="Search..."
+            oninput="renderTable()" />
+
+          <!-- Gate Filter -->
+          <select id="gateFilter" class="form-control search-input common-input" style="max-width:180px;"
+            onchange="renderTable()">
+            <option value="">Select Gate</option>
+            <option value="C34A-GATE">C34A-GATE</option>
+            <option value="C34-GATE">C34-GATE</option>
+            <option value="C3-GATE">C3-GATE</option>
+          </select>
           <!-- Start Date -->
           <input type="date" id="startDate" class="form-control search-input" style="max-width: 160px;"
             onchange="renderTable()" />
-
           <!-- End Date -->
           <input type="date" id="endDate" class="form-control search-input" style="max-width: 160px;"
             onchange="renderTable()" />
-          <button class="btn btn-sm" onclick="toggleSound()" id="soundBtn" style="
+        </div>
+
+        <!-- Refresh Button (same position, untouched) -->
+
+        <!-- Refresh Button (same position, untouched) -->
+        <div class="d-flex gap-2 mt-2 mt-sm-0">
+          <button class="btn btn-sm me-3" onclick="toggleSound()" id="soundBtn" style="
             width:35px;
             height:35px;
             border-radius:50%;
@@ -101,13 +121,9 @@
             cursor:pointer;
             transition: all 0.3s ease;
           " onmouseover="this.style.transform='scale(1.2)';" onmouseout="this.style.transform='scale(1)';">🔊</button>
+          <button class="btn btn-primary btn-sm btn-custom" id="refreshBtn" onclick="refreshData(this)">Refresh</button>
+          <button class="btn btn-primary btn-sm btn-custom">Report</button>
         </div>
-
-        <!-- Refresh Button (same position, untouched) -->
-
-        <!-- Refresh Button (same position, untouched) -->
-        <button class="btn btn-primary btn-sm btn-custom" id="refreshBtn" onclick="refreshData(this)">Refresh</button>
-
       </div>
 
 
@@ -143,7 +159,7 @@
   <script>
     const SHEET_URL = "https://script.google.com/macros/s/AKfycbzmYWRmyRYFlDUmPagec97dv9iet2s_P5K7y1wVdNh5GUi51tyffZtE2ZIa0C-2FdZS/exec";
     let lastDataCount = 0;
-
+    let statusFilter = "";
     let data = [];
     let currentPage = 1;
     const rowsPerPage = 12;
@@ -177,6 +193,7 @@
 
 
     function renderTable() {
+      const gateVal = document.getElementById("gateFilter").value;
       const tbody = document.querySelector("#dataTable tbody");
       const search = document.querySelector(".search-input").value.toLowerCase();
 
@@ -198,6 +215,10 @@
 
         const rowStr = Object.values(row).join(" ").toLowerCase();
         if (search && !rowStr.includes(search)) return false;
+
+        if (gateVal && row.Gate !== gateVal) return false;
+
+        if (statusFilter && row.Status !== statusFilter) return false;
 
         return true;
       });
@@ -540,6 +561,11 @@
       document.getElementById("endDate").value = today;
 
       renderTable();
+      populateItemFilter();
+
+      // ⭐ DEFAULT — Reported active
+      const reportedCard = document.querySelector('.status-card[onclick="filterByStatus(\'\')"]');
+      if (reportedCard) reportedCard.classList.add("active");
     };
 
 
@@ -575,6 +601,19 @@
 
       document.getElementById("soundBtn").innerText =
         soundEnabled ? "🔊" : "🔇";
+    }
+
+    function filterByStatus(status) {
+
+      statusFilter = status;
+      currentPage = 1;
+      renderTable();
+
+      document.querySelectorAll(".status-card")
+        .forEach(c => c.classList.remove("active"));
+
+      // jispe click hua usko active
+      event.currentTarget.classList.add("active");
     }
   </script>
 </body>
