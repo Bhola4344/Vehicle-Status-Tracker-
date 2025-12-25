@@ -376,7 +376,7 @@
       }
 
       #gateFilter {
-        width: 100% !important;
+        width: 50% !important;
         max-width: 100% !important;
         display: block;
       }
@@ -422,4 +422,5 @@
       align-items: center;
       justify-content: center;
     }
+
 
