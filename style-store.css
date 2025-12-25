@@ -375,18 +375,21 @@
         display: inline-block;
       }
 
+      /* 👉 YEH MOST IMPORTANT */
       #gateFilter {
         width: 100% !important;
         max-width: 100% !important;
         display: block;
+        flex: 1 0 100% !important;
+        /* <- force full row */
       }
 
-      /* Date container ko wrap allow karo */
       .d-flex.flex-column.flex-sm-row.justify-content-between.mb-2.mt-2.align-items-sm-center>div {
         width: 100%;
         flex-wrap: wrap;
       }
     }
+
 
     .common-input {
       width: 180px;
