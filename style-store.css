@@ -371,8 +371,14 @@
       /* Dates side-by-side */
       #startDate,
       #endDate {
-        width: 50% !important;
+        width: 49% !important;
         display: inline-block;
+      }
+
+      #gateFilter {
+        width: 100% !important;
+        max-width: 100% !important;
+        display: block;
       }
 
       /* Date container ko wrap allow karo */
@@ -382,24 +388,9 @@
       }
     }
 
-    @media (max-width: 576px) {
-      #gateFilter {
-        max-width: 100% !important;
-      }
-    }
-
-    @media (max-width: 576px) {
-
-      #startDate,
-      #endDate {
-        max-width: 48% !important;
-      }
-    }
-
     .common-input {
       width: 180px;
       /* date input ke barabar value */
-      max-width: 100%;
     }
 
     .status-card {
@@ -429,4 +420,3 @@
       align-items: center;
       justify-content: center;
     }
-
