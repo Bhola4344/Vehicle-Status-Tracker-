@@ -391,6 +391,8 @@
     .common-input {
       width: 180px;
       /* date input ke barabar value */
+                max-width: 100% !important;
+
     }
 
     .status-card {
@@ -420,3 +422,4 @@
       align-items: center;
       justify-content: center;
     }
+
