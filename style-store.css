@@ -371,7 +371,7 @@
       /* Dates side-by-side */
       #startDate,
       #endDate {
-        width: 49% !important;
+        width: 48% !important;
         display: inline-block;
       }
 
@@ -423,3 +423,4 @@
       align-items: center;
       justify-content: center;
     }
+
