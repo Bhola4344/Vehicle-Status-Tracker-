@@ -58,6 +58,7 @@
     .status-card:hover {
       transform: translateY(-5px) scale(1.05);
       box-shadow: 0 12px 25px rgba(0, 0, 0, 0.25);
+      cursor: pointer;
     }
 
 
@@ -379,4 +380,54 @@
         width: 100%;
         flex-wrap: wrap;
       }
+    }
+
+    @media (max-width: 576px) {
+
+      #itemFilter,
+      #gateFilter {
+        max-width: 49% !important;
+      }
+    }
+
+    @media (max-width: 576px) {
+
+      #startDate,
+      #endDate {
+        max-width: 49% !important;
+      }
+    }
+
+    .common-input {
+      width: 180px;
+      /* date input ke barabar value */
+      max-width: 100%;
+    }
+
+    .status-card {
+      position: relative;
+      transition: all .2s ease-in-out;
+      cursor: pointer;
+    }
+
+    .status-card.active {
+      box-shadow: 0 0 10px rgba(0, 0, 0, .18);
+      transform: scale(1.02);
+    }
+
+    .status-card.active::after {
+      content: "✓";
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      background: #ae24d1;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
