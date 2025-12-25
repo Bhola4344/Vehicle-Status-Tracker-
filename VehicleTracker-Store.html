@@ -87,19 +87,16 @@
             oninput="renderTable()" />
 
           <!-- Gate Filter -->
-          <select id="gateFilter" class="form-control search-input common-input" style="max-width:180px;"
-            onchange="renderTable()">
+          <select id="gateFilter" class="form-control search-input common-input" onchange="renderTable()">
             <option value="">Select Gate</option>
             <option value="C34A-GATE">C34A-GATE</option>
             <option value="C34-GATE">C34-GATE</option>
             <option value="C3-GATE">C3-GATE</option>
           </select>
           <!-- Start Date -->
-          <input type="date" id="startDate" class="form-control search-input" style="max-width: 160px;"
-            onchange="renderTable()" />
+          <input type="date" id="startDate" class="form-control search-input common-input" onchange="renderTable()" />
           <!-- End Date -->
-          <input type="date" id="endDate" class="form-control search-input" style="max-width: 160px;"
-            onchange="renderTable()" />
+          <input type="date" id="endDate" class="form-control search-input common-input" onchange="renderTable()" />
         </div>
 
         <!-- Refresh Button (same position, untouched) -->
