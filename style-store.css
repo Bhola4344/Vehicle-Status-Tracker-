@@ -383,10 +383,8 @@
     }
 
     @media (max-width: 576px) {
-
-      #itemFilter,
       #gateFilter {
-        max-width: 49% !important;
+        max-width: 100% !important;
       }
     }
 
@@ -394,7 +392,7 @@
 
       #startDate,
       #endDate {
-        max-width: 49% !important;
+        max-width: 48% !important;
       }
     }
 
@@ -431,3 +429,4 @@
       align-items: center;
       justify-content: center;
     }
+
