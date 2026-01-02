@@ -111,6 +111,14 @@
           <input type="text" id="tableSearch" class="form-control search-input" placeholder="Search..."
             oninput="renderReadOnlyTable()" />
 
+          <!-- Gate Filter -->
+          <select id="gateFilter" class="form-control search-input common-input" onchange="renderReadOnlyTable()">
+            <option value="">Select Gate</option>
+            <option value="C34A-GATE">C34A-GATE</option>
+            <option value="C34-GATE">C34-GATE</option>
+            <option value="C3-GATE">C3-GATE</option>
+          </select>
+
           <!-- Start Date -->
           <input type="date" id="startDate" class="form-control search-input" style="max-width: 160px;"
             onchange="renderReadOnlyTable()" />
@@ -263,6 +271,7 @@
     }
 
     function renderReadOnlyTable() {
+      const gateValue = document.getElementById("gateFilter").value;
 
       const tbody = document.querySelector("#readOnlyTable tbody");
       const search = document.getElementById("tableSearch").value.toLowerCase();
@@ -282,6 +291,8 @@
 
         if (startDate && rowDate && rowDate < startDate) return false;
         if (endDate && rowDate && rowDate > endDate) return false;
+
+        if (gateValue && row.Gate !== gateValue) return false;
 
         // Search filter
         const tempRow = { ...row, Response: row.Response || 'Waiting' };
@@ -387,10 +398,14 @@
       }
     }
 
-    // Set default 1-day date range on page load
+    // Set default 2-day date range on page load
     document.addEventListener("DOMContentLoaded", () => {
       const today = new Date();
-      const yesterday = new Date();
+
+      // 1 din pichhe
+      const twoDaysBack = new Date();
+      twoDaysBack.setDate(today.getDate() - 1);
+
       const formatDate = (d) => {
         const mm = String(d.getMonth() + 1).padStart(2, '0');
         const dd = String(d.getDate()).padStart(2, '0');
@@ -398,10 +413,9 @@
         return `${yyyy}-${mm}-${dd}`;
       };
 
-      document.getElementById("startDate").value = formatDate(today);
+      document.getElementById("startDate").value = formatDate(twoDaysBack);
       document.getElementById("endDate").value = formatDate(today);
 
-      // Render table immediately with default dates
       renderReadOnlyTable();
     });
 
