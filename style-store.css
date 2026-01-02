@@ -79,6 +79,7 @@
       border: 1px solid #e6eef8;
       text-align: left;
       white-space: nowrap;
+      vertical-align: middle;
     }
 
     table th {
@@ -163,8 +164,21 @@
 
     .response-select,
     .status-select {
-      font-size: 10px;
+      font-size: 11px;
+      /* readable size */
+      white-space: normal;
+      /* wrap allowed */
+      width: auto;
+      /* full content dikhe */
+      height: 36px;
+      /* thoda lamba aur uniform height */
+      border-radius: 8px;
+      /* dusre inputs ke jaisa rounded corners */
+      padding: 4px 8px;
+      /* thoda andar ka padding */
+      box-sizing: border-box;
     }
+
 
     /* Updated Button Styles */
     .btn-custom {
@@ -295,13 +309,17 @@
     .response-select,
     .status-select {
       font-size: 11px;
-      /* chhota lekin readable */
+      /* thoda bada text */
+      height: 34px;
+      /* dropdown height */
+      min-width: 117px;
+      /* minimum width, jyada lamba na ho */
+      max-width: 120px;
+      /* optional, max limit */
       white-space: normal;
-      /* wrap allowed, truncate mat ho */
-      width: auto;
-      /* full text dikhe */
-      /* minimum width ensure kare */
+      /* inner spacing */
     }
+
 
     @media (max-width: 576px) {
 
