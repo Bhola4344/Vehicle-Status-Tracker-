@@ -343,10 +343,8 @@
       row[field] = value;
 
       // Update timestamp and RespondBy only if Response changed from Waiting
-      if (field === "Response" && value !== "Waiting") {
-        row.ResponseTime = new Date().toISOString();
-        row.RespondBy = sessionStorage.getItem("userName") || "Unknown";
-      }
+      row.ResponseTime = new Date().toISOString();
+      row.RespondBy = sessionStorage.getItem("userName") || "Unknown";
 
       // ⚡ Save to cache immediately so table remembers before save
       dropdownCache[id] = {
@@ -367,8 +365,15 @@
 
     async function updateRow(id, btn) {
       const row = data.find(r => r.ID == id);
-      const formData = new FormData();
+      // ✔ ensure RespondBy + ResponseTime always set when Response is not Waiting
 
+      if (!row.RespondBy) {
+        row.RespondBy = sessionStorage.getItem("userName") || "Unknown";
+      }
+      if (!row.ResponseTime) {
+        row.ResponseTime = new Date().toISOString();
+      }
+      const formData = new FormData();
       formData.append("ID", row.ID);
       formData.append("Status", row.Status);
       formData.append("Remark", row.Remark);
