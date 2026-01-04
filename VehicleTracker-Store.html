@@ -153,6 +153,102 @@
     </div>
   </div>
 
+  <!-- VEHICLE LOG MODAL -->
+  <div id="vehicleModal" style="
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.35);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+">
+    <div style="
+    background:#fff; border-radius:14px; padding:18px 20px;
+    width:95%; max-width:850px;
+    box-shadow:0 20px 45px rgba(0,0,0,.25);
+  ">
+
+      <!-- Modal -->
+      <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+        <b style="font-size:17px">VEHICLE LOG</b>
+        <span style="cursor:pointer" class="no-print" onclick="closeVehicleModal()">✕</span>
+      </div>
+
+      <!-- SUMMARY BAR -->
+      <div style="
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px 16px;
+  padding: 14px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  margin-bottom: 14px;
+  background: #ffffff;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+">
+
+        <div>
+          <div style="font-size: 12px; color:#6b7280; text-transform: uppercase; letter-spacing:.04em;">Vehicle No</div>
+          <div style="font-size: 15px; font-weight: 700; color:#111827;" id="summaryVehicle"></div>
+        </div>
+
+        <div>
+          <div style="font-size: 12px; color:#6b7280; text-transform: uppercase; letter-spacing:.04em;">Material</div>
+          <div style="font-size: 15px; font-weight: 700; color:#111827;" id="summaryMaterial"></div>
+        </div>
+
+        <div>
+          <div style="font-size: 12px; color:#6b7280; text-transform: uppercase; letter-spacing:.04em;">Qty</div>
+          <div style="font-size: 15px; font-weight: 700; color:#111827;" id="summaryQty"></div>
+        </div>
+
+        <div>
+          <div style="font-size: 12px; color:#6b7280; text-transform: uppercase; letter-spacing:.04em;">Reporting Time
+          </div>
+          <div style="font-size: 15px; font-weight: 700; color:#111827;" id="summaryReportingTime">-</div>
+        </div>
+
+        <div>
+          <div style="font-size: 12px; color:#6b7280; text-transform: uppercase; letter-spacing:.04em;">Reporting Gate
+          </div>
+          <div style="font-size: 15px; font-weight: 700; color:#111827;" id="summaryReportingGate">-</div>
+        </div>
+
+      </div>
+
+      <!-- TABLE -->
+      <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:14px;">
+          <thead>
+            <tr style="background:#f1f5f9;">
+              <th style="padding:10px; border-bottom:1px solid #e5e7eb; text-align:left;">Store Respond</th>
+              <th style="padding:10px; border-bottom:1px solid #e5e7eb; text-align:left;">Vehicle Status</th>
+              <th style="padding:10px; border-bottom:1px solid #e5e7eb; text-align:left;">Remark</th>
+              <th style="padding:10px; border-bottom:1px solid #e5e7eb; text-align:left;">Respond By</th>
+              <th style="padding:10px; border-bottom:1px solid #e5e7eb; text-align:left;">Time</th>
+            </tr>
+          </thead>
+          <tbody id="vehicleLogRow">
+            <!-- rows yahan append honge -->
+          </tbody>
+        </table>
+      </div>
+      <button class="no-print mt-2 float-end hover" onclick="printModal()" style="
+    padding: 8px 16px;
+    border-radius: 10px;
+    border: 1px solid #1e40af;
+    background: linear-gradient(145deg, #1e3a8a, #3b82f6);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+">
+        Print
+      </button>
+    </div>
+  </div>
+
   <script>
     const SHEET_URL = "https://script.google.com/macros/s/AKfycbzmYWRmyRYFlDUmPagec97dv9iet2s_P5K7y1wVdNh5GUi51tyffZtE2ZIa0C-2FdZS/exec";
     let lastDataCount = 0;
@@ -260,7 +356,12 @@
         tr.innerHTML = `
       <td>${row.ID}</td>
       <td>${row["Vehicle Type"]}</td>
-      <td>${row["Vehicle No"]}</td>
+      <td>
+  <span class="vehicle-link"
+        onclick='openVehicleModal(${JSON.stringify(row)})'>
+    ${row["Vehicle No"]}
+  </span>
+</td>
       <td>${row.Material}</td>
       <td>${row.Quantity}</td>
       <td>${row.Gate}</td>
@@ -363,32 +464,46 @@
     }
 
 
+    const VEHICLE_LOG_URL = "https://script.google.com/macros/s/AKfycbwGyv2OiosKuWOysaNrwPLjd7Uhw5QcpzXasPR1KYkUc34ss2ONN-tRhULXDOzw3GenOw/exec";
     async function updateRow(id, btn) {
       const row = data.find(r => r.ID == id);
-      // ✔ ensure RespondBy + ResponseTime always set when Response is not Waiting
+      if (!row) return;
 
-      if (!row.RespondBy) {
-        row.RespondBy = sessionStorage.getItem("userName") || "Unknown";
-      }
-      if (!row.ResponseTime) {
-        row.ResponseTime = new Date().toISOString();
-      }
+      // Set RespondBy and ResponseTime
+      if (!row.RespondBy) row.RespondBy = sessionStorage.getItem("userName") || "Unknown";
+      if (!row.ResponseTime) row.ResponseTime = new Date().toISOString();
+
+      // FORM DATA for main SHEET_URL
       const formData = new FormData();
       formData.append("ID", row.ID);
       formData.append("Status", row.Status);
       formData.append("Remark", row.Remark);
       formData.append("Response", row.Response);
-      formData.append("ResponseTime", row.ResponseTime || "");
-      formData.append("RespondBy", row.RespondBy || "");
+      formData.append("ResponseTime", row.ResponseTime);
+      formData.append("RespondBy", row.RespondBy);
 
       btn.disabled = true;
       btn.textContent = "Saving...";
 
       try {
+        // 1️⃣ Update existing main Sheet
         await fetch(SHEET_URL, { method: "POST", body: formData });
+
+        // 2️⃣ Append row to vehicle log Sheet
+        const logData = new URLSearchParams();
+        logData.append("VehicleNo", row["Vehicle No"]);
+        logData.append("StoreResponse", row.Response);
+        logData.append("VehicleStatus", row.Status);
+        logData.append("StoreRemark", row.Remark);
+        logData.append("ResponseBy", row.RespondBy || "-");
+        logData.append("Timestamp", row.ResponseTime);
+
+        await fetch(VEHICLE_LOG_URL, { method: "POST", body: logData });
+
         showToast("✔ Saved Successfully!");
         fetchData(false);
       } catch (e) {
+        console.error(e);
         showToast("⚠ Saved! (Network Issue)", "#dc3545");
         fetchData(false);
       } finally {
@@ -623,6 +738,107 @@
 
       // jispe click hua usko active
       event.currentTarget.classList.add("active");
+    }
+
+
+
+    async function openVehicleModal(row) {
+      if (!row) return;
+
+      // ---- SUMMARY FIRST (instant) ----
+      document.getElementById("summaryVehicle").innerText = row["Vehicle No"] || "-";
+      document.getElementById("summaryMaterial").innerText = row.Material || "-";
+      document.getElementById("summaryQty").innerText = row.Quantity || "-";
+      document.getElementById("summaryReportingTime").innerText = formatDate(row.timestamp || row.ReportingTime || "");
+      document.getElementById("summaryReportingGate").innerText = row.Gate || row.ReportingGate || "-";
+
+      // Show modal IMMEDIATELY
+      const tbody = document.getElementById("vehicleLogRow");
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Loading...</td></tr>`;
+      document.getElementById("vehicleModal").style.display = "flex";
+
+      // ---- FETCH IN BACKGROUND ----
+      try {
+        const res = await fetch(
+          "https://script.google.com/macros/s/AKfycbwGyv2OiosKuWOysaNrwPLjd7Uhw5QcpzXasPR1KYkUc34ss2ONN-tRhULXDOzw3GenOw/exec",
+          { cache: "no-store" }
+        );
+
+        const logData = await res.json();
+
+        const vehicleLogs = logData.filter(
+          r => r["Vehicle No"] === row["Vehicle No"]
+        );
+
+        if (!vehicleLogs.length) {
+          tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:red;">No records found</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = "";
+
+        vehicleLogs.forEach(r => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+        <td style="padding:8px; border-bottom:1px solid #e5e7eb;">${r["Store Response"] || "-"}</td>
+        <td style="padding:8px; border-bottom:1px solid #e5e7eb;">${r["Vehicle Status"] || "-"}</td>
+        <td style="padding:8px; border-bottom:1px solid #e5e7eb;">${r["Store Remark"] || "-"}</td>
+        <td style="padding:8px; border-bottom:1px solid #e5e7eb;">${r["Response By"] || "-"}</td>
+        <td style="padding:8px; border-bottom:1px solid #e5e7eb;">${formatDate(r.Timestamp || "")}</td>
+      `;
+          tbody.appendChild(tr);
+        });
+
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:red;">Error fetching data</td></tr>`;
+        console.error(err);
+      }
+    }
+    function closeVehicleModal() {
+      const m = document.getElementById("vehicleModal");
+      if (m) m.style.display = "none";
+    }
+
+
+    function printModal() {
+      const modal = document.getElementById("vehicleModal");
+
+      if (!modal) {
+        alert("Modal content not found!");
+        return;
+      }
+
+      const printWindow = window.open("", "", "width=900,height=750");
+
+      printWindow.document.write(`
+    <html>
+      <head>
+        <title>Print</title>
+
+        <style>
+          body {
+            font-family: Inter, Arial, sans-serif;
+            padding: 20px;
+          }
+
+          @media print {
+            .no-print {
+              display: none !important;
+            }
+          }
+        </style>
+
+      </head>
+
+      <body>
+        ${modal.innerHTML}
+      </body>
+    </html>
+  `);
+
+      printWindow.document.close();
+      printWindow.print();
+      printWindow.close();
     }
   </script>
 </body>
