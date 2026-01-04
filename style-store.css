@@ -442,3 +442,61 @@
       align-items: center;
       justify-content: center;
     }
+
+    .badge {
+      padding: 6px 10px;
+      border-radius: 12px;
+      font-size: 14px;
+      background: #e0e0e0;
+      /* readable gray background */
+      color: #000;
+      /* black text */
+      font-weight: bold;
+      border: 1px solid #ccc;
+      white-space: nowrap;
+    }
+
+    .hover:hover {
+      background: linear-gradient(145deg, #3b82f6, #1e3a8a);
+      transform: translateY(-2px) scale(1.05);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .hover:active {
+      transform: translateY(0) scale(0.98);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .vehicle-link {
+      color: #1d4ed8;
+      font-weight: 600;
+      position: relative;
+      /* required for pseudo-element */
+      cursor: pointer;
+      text-decoration: none;
+      /* remove default underline */
+      transition: color 0.3s ease;
+    }
+
+    .vehicle-link::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -2px;
+      /* underline distance from text */
+      width: 0;
+      height: 2px;
+      background: #2563eb;
+      /* underline color */
+      transition: width 0.3s ease;
+    }
+
+    .vehicle-link:hover {
+      color: #2563eb;
+      /* text color on hover */
+    }
+
+    .vehicle-link:hover::after {
+      width: 100%;
+      /* underline slides in from left to right */
+    }
