@@ -24,7 +24,7 @@
     .status-card {
       min-width: 100px;
       font-weight: 700;
-      font-size: 14px;
+      font-size: 15px;
       transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
       padding: 12px 15px;
       border-radius: 12px;
@@ -499,4 +499,8 @@
     .vehicle-link:hover::after {
       width: 100%;
       /* underline slides in from left to right */
+    }
+
+    .common-input {
+      min-width: 120px;
     }
