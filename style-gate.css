@@ -497,7 +497,8 @@ tr.highlight-yellow td {
 }
 
 /* Table header nowrap */
-#readOnlyTable th {
+#readOnlyTable th,
+#readOnlyTable td {
   white-space: nowrap;
-  /* Prevent text from wrapping */
 }
+
