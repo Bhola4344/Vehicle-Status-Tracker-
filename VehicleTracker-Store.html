@@ -80,48 +80,51 @@
 
 
 
-      <div class="d-flex flex-column flex-sm-row justify-content-between mb-2 mt-2 align-items-sm-center">
-        <div class="d-flex align-items-center gap-2 mb-2 mb-sm-0">
-          <!-- Search (same as before) -->
+      <div class="d-flex flex-column flex-sm-row justify-content-between mb-2 mt-2 align-items-sm-center filter-bar">
+
+        <div class="d-flex align-items-center gap-2 mb-2 mb-sm-0" style="flex-wrap:wrap;">
+          <!-- Search -->
           <input type="text" class="form-control search-input common-input" placeholder="Search..."
             oninput="renderTable()" />
 
           <!-- Gate Filter -->
           <select id="gateFilter" class="form-control search-input common-input" onchange="renderTable()">
-            <option value="">Select Gate</option>
+            <option value="">Select All Gate</option>
             <option value="C34A-GATE">C34A-GATE</option>
             <option value="C34-GATE">C34-GATE</option>
             <option value="C3-GATE">C3-GATE</option>
           </select>
+
           <!-- Start Date -->
           <input type="date" id="startDate" class="form-control search-input common-input" onchange="renderTable()" />
+
           <!-- End Date -->
           <input type="date" id="endDate" class="form-control search-input common-input" onchange="renderTable()" />
         </div>
 
-        <!-- Refresh Button (same position, untouched) -->
-
-        <!-- Refresh Button (same position, untouched) -->
-        <div class="d-flex gap-2 mt-2 mt-sm-0">
+        <!-- Buttons -->
+        <div class="d-flex gap-2 mt-2 mt-sm-0 top-actions" style="flex-wrap:wrap;">
           <button class="btn btn-sm me-3" onclick="toggleSound()" id="soundBtn" style="
-            width:35px;
-            height:35px;
-            border-radius:50%;
-            background: linear-gradient(145deg, #b3d1f7, #8aa4d1);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-            color:#fff;
-            border:none;
-            font-size:18px;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            cursor:pointer;
-            transition: all 0.3s ease;
-          " onmouseover="this.style.transform='scale(1.2)';" onmouseout="this.style.transform='scale(1)';">🔊</button>
+        width:35px;
+        height:35px;
+        border-radius:50%;
+        background: linear-gradient(145deg, #b3d1f7, #8aa4d1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        color:#fff;
+        border:none;
+        font-size:18px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        cursor:pointer;
+        transition: all 0.3s ease;
+      " onmouseover="this.style.transform='scale(1.2)';" onmouseout="this.style.transform='scale(1)';">🔊</button>
+
           <button class="btn btn-primary btn-sm btn-custom" id="refreshBtn" onclick="refreshData(this)">Refresh</button>
-          <button class="btn btn-primary btn-sm btn-custom">Report</button>
         </div>
+
       </div>
+
 
 
       <div class="table-container">
@@ -372,14 +375,14 @@
       <td>
         <select class="form-select form-select-sm response-select"
           onchange="updateField(${row.ID}, 'Response', this.value);applyResponseColor(this)">
-          <option value="Waiting">Waiting</option>
-          <option>Entry-C34A</option>
-          <option>Entry-C34</option>
-          <option>Entry-C3</option>
-          <option>Send to C34A</option>
-          <option>Send to C34</option>
-          <option>Send to C3</option>
-          <option>Out</option>
+          <option value="Waiting">WAITING</option>
+          <option value="Entry-C34A">ENTRY-C34A</option>
+          <option value="Entry-C34">ENTRY-C34</option>
+          <option value="Entry-C3">ENTRY-C3</option>
+          <option value="Send to C34A">SEND TO C34A</option>
+          <option value="Send to C34">SEND TO C34</option>
+          <option value="Send to C3">SEND TO C3</option>
+          <option value="Out">OUT</option>
         </select>
       </td>
 
@@ -389,13 +392,13 @@
       <td>
         <select class="form-select form-select-sm status-select"
           onchange="updateField(${row.ID}, 'Status', this.value);applyStatusColor(this)">
-          <option>Pending</option>
-          <option>In Process</option>
-          <option>Lab-Test</option>
-          <option>Unloading</option>
-          <option>Hold</option>
-          <option>Complete</option>
-          <option>Loading</option>
+          <option value="Pending">PENDING</option>
+          <option value="In Process">IN PROCESS</option>
+          <option value="Lab-Test">LAB-TEST</option>
+          <option value="Unloading">UNLOADING</option>
+          <option value="Hold">HOLD</option>
+          <option value="Complete">COMPLETE</option>
+          <option value="Loading">LOADING</option>
         </select>
       </td>
 
