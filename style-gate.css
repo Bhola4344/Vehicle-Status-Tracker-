@@ -485,3 +485,19 @@ tr.highlight-yellow td {
     gap: 6px;
   }
 }
+
+.response-cell,
+.status-cell,
+.remark-cell {
+  text-transform: uppercase;
+}
+
+.remark-cell {
+  text-transform: uppercase;
+}
+
+/* Table header nowrap */
+#readOnlyTable th {
+  white-space: nowrap;
+  /* Prevent text from wrapping */
+}
