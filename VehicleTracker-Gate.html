@@ -103,29 +103,25 @@
           </div>
 
           <div class="col-12 col-md-4">
-            <div class="input-group">
-              <!-- Camera button -->
-              <span class="input-group-text form-control" style="cursor:pointer;" onclick="openCamera()">📷
-                Capture Invoice</span>
+            <div class="input-group invoice-box">
 
-              <!-- Divider -->
-              <span class="input-group-text" style="border-left:none;border-right:none;background:transparent;">|</span>
+              <span class="input-group-text form-control cam-btn" onclick="openCamera()">
+                📷 <span> Capture Invoice</span>
+              </span>
 
-              <!-- Upload button with text -->
-              <span class="input-group-text form-control" style="cursor:pointer;" onclick="openUpload()">📁 Upload
-                Invoice</span>
+              <span class="input-group-text divider" style="background: transparent;">|</span>
 
-              <!-- Hidden file input -->
+              <span class="input-group-text form-control upload-btn" onclick="openUpload()">
+                📁 <span> Upload Invoice</span>
+              </span>
+
               <input id="invoiceCapture" type="file" accept="image/*" capture="environment" style="display:none;"
                 onchange="previewInvoice(event)" />
             </div>
 
-            <!-- Preview image -->
             <img id="preview"
               style="width:120px;margin-top:8px;display:none;border:1px solid #ddd;border-radius:6px;" />
           </div>
-
-
 
         </div>
 
