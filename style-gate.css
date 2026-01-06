@@ -533,12 +533,12 @@ tr.highlight-yellow td {
 
   /* ICON size here */
   .invoice-box .input-group-text {
-    font-size: 20px;
+    font-size: 18px;
     /* ← icon size */
   }
 
   .invoice-box span span {
-    font-size: 16px;
+    font-size: 14px;
     /* text chhota */
   }
 
