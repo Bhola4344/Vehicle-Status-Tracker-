@@ -507,24 +507,16 @@ tr.highlight-yellow td {
 }
 
 .invoice-box .input-group-text {
-  font-size: 20px;
+  font-size: 16px;
   /* ← icon size */
 }
 
 .invoice-box span {
-  font-size: 16px;
+  font-size: 13px;
 }
 
 /* mobile styling */
 @media (max-width: 600px) {
-
-  .invoice-box {
-    flex-direction: row;
-    /* ek hi line */
-    gap: 4px;
-    /* thoda gap chhota */
-  }
-
   .invoice-box .form-control {
     padding: 4px 8px;
     /* height chhoti */
@@ -538,17 +530,7 @@ tr.highlight-yellow td {
   }
 
   .invoice-box span span {
-    font-size: 14px;
+    font-size: 12px;
     /* text chhota */
-  }
-
-  .invoice-box .divider {
-    padding: 0 6px;
-    display: inline-flex;
-    /* divider visible */
-  }
-
-  .invoice-box .input-group-text {
-    cursor: pointer;
   }
 }
