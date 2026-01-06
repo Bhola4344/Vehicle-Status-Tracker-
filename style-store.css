@@ -504,3 +504,125 @@
     .common-input {
       min-width: 120px;
     }
+
+    /* PRINT — only modal, no shadow, no gradient */
+    @media print {
+
+      /* sab kuch hide */
+      body * {
+        visibility: hidden !important;
+      }
+
+      /* sirf modal ka area print */
+      #printArea,
+      #printArea * {
+        visibility: visible !important;
+      }
+
+      #printArea {
+        position: absolute !important;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: #ffffff !important;
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+      }
+
+      /* remove gradients + shadows inside */
+      #printArea *,
+      #printArea *::before,
+      #printArea *::after {
+        background: #ffffff !important;
+        background-image: none !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+        color: #000 !important;
+      }
+
+      button,
+      .no-print {
+        display: none !important;
+      }
+    }
+
+    /* PRINT BUTTON — modern look */
+    .print-btn {
+      float: right;
+      /* right end pe */
+      margin-top: 15px;
+      padding: 6px 12px;
+      border-radius: 12px;
+      border: 1px solid #1e40af;
+      background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+      color: #fff;
+      font-weight: 700;
+      letter-spacing: .02em;
+      cursor: pointer;
+      transition: all .25s ease;
+      box-shadow: 0 10px 20px rgba(30, 64, 175, .25);
+    }
+
+    /* Hover effect */
+    .print-btn:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 16px 28px rgba(30, 64, 175, .35);
+      background: linear-gradient(135deg, #2563eb, #60a5fa);
+    }
+
+    /* Click */
+    .print-btn:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    /* Disable print view */
+    @media print {
+      .print-btn {
+        display: none !important;
+      }
+    }
+
+    /* ===== RESPONSIVE FONT — VEHICLE MODAL ===== */
+    @media (max-width: 600px) {
+
+      /* poore modal ka base font chhota */
+      #printArea {
+        font-size: 12px !important;
+      }
+
+      /* heading thodi chhoti */
+      #printArea b {
+        font-size: 14px !important;
+      }
+
+      /* summary labels */
+      #printArea div[style*="uppercase"] {
+        font-size: 10px !important;
+      }
+
+      /* summary main values */
+      #summaryVehicle,
+      #summaryMaterial,
+      #summaryQty,
+      #summaryReportingTime,
+      #summaryReportingGate {
+        font-size: 13px !important;
+        font-weight: 600 !important;
+      }
+
+      /* table text */
+      #printArea table {
+        font-size: 11px !important;
+      }
+
+      #printArea th,
+      #printArea td {
+        padding: 6px !important;
+      }
+
+      /* print button */
+      .print-btn {
+        font-size: 12px !important;
+        padding: 6px 12px !important;
+      }
+    }
