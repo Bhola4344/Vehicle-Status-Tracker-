@@ -103,20 +103,21 @@
           </div>
 
           <div class="col-12 col-md-4">
-            <div class="input-group invoice-box">
+            <div class="input-group invoice-box border border-1 mt-1">
 
-              <span class="input-group-text form-control cam-btn" onclick="openCamera()">
+              <span class="input-group-text cam-btn" style="background: transparent;" onclick="openCamera()">
                 📷 <span> Capture Invoice</span>
               </span>
 
               <span class="input-group-text divider" style="background: transparent;">|</span>
 
-              <span class="input-group-text form-control upload-btn" onclick="openUpload()">
+              <span class="input-group-text upload-btn" style="background: transparent;" onclick="openUpload()">
                 📁 <span> Upload Invoice</span>
               </span>
 
               <input id="invoiceCapture" type="file" accept="image/*" capture="environment" style="display:none;"
                 onchange="previewInvoice(event)" />
+
             </div>
 
             <img id="preview"
