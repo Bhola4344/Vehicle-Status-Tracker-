@@ -501,3 +501,54 @@ tr.highlight-yellow td {
 #readOnlyTable td {
   white-space: nowrap;
 }
+
+.invoice-box .input-group-text {
+  cursor: pointer;
+}
+
+.invoice-box .input-group-text {
+  font-size: 20px;
+  /* ← icon size */
+}
+
+.invoice-box span {
+  font-size: 16px;
+}
+
+/* mobile styling */
+@media (max-width: 600px) {
+
+  .invoice-box {
+    flex-direction: row;
+    /* ek hi line */
+    gap: 4px;
+    /* thoda gap chhota */
+  }
+
+  .invoice-box .form-control {
+    padding: 4px 8px;
+    /* height chhoti */
+    font-size: 12px;
+  }
+
+  /* ICON size here */
+  .invoice-box .input-group-text {
+    font-size: 20px;
+    /* ← icon size */
+  }
+
+  .invoice-box span span {
+    font-size: 16px;
+    /* text chhota */
+  }
+
+  .invoice-box .divider {
+    padding: 0 6px;
+    display: inline-flex;
+    /* divider visible */
+  }
+
+  .invoice-box .input-group-text {
+    cursor: pointer;
+  }
+}
