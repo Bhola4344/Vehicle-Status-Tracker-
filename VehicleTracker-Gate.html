@@ -12,6 +12,7 @@
     <source src="https://actions.google.com/sounds/v1/doors/doorbell_chime.ogg" type="audio/ogg">
   </audio>
   <link rel="stylesheet" href="style-gate.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 
 <body>
@@ -115,13 +116,12 @@
                 📁 <span> Upload Invoice</span>
               </span>
 
-              <input id="invoiceCapture" type="file" accept="image/*" capture="environment" style="display:none;"
-                onchange="previewInvoice(event)" />
+              <input id="invoiceCapture" type="file" accept="image/*" capture="environment" multiple
+                style="display:none;" onchange="previewInvoice(event)" />
 
             </div>
 
-            <img id="preview"
-              style="width:120px;margin-top:8px;display:none;border:1px solid #ddd;border-radius:6px;" />
+            <div id="previewBox" style="display:flex;gap:6px;flex-wrap:wrap; margin-top: 10px;"></div>
           </div>
 
         </div>
@@ -213,6 +213,8 @@
     let currentPage = 1;
     const rowsPerPage = 12;
     let isTyping = false;
+    let invoiceImages = [];
+    const MAX_IMAGES = 10;
 
     // Check login
     if (!sessionStorage.getItem('loggedIn')) {
@@ -229,7 +231,12 @@
     searchBox.addEventListener("input", () => { isTyping = true; renderReadOnlyTable(); });
     searchBox.addEventListener("blur", () => { isTyping = false; });
 
-    function resetForm() { document.getElementById("vehicleForm").reset(); }
+    function resetForm() {
+      document.getElementById("vehicleForm").reset();
+      document.getElementById("invoiceCapture").value = "";
+      document.getElementById("previewBox").innerHTML = "";
+      invoiceImages = [];
+    }
 
     function showToast(msg, bgColor = '#28a745') {
       const toast = document.getElementById('toast');
@@ -244,7 +251,7 @@
       }, 2000);
     }
 
-    function submitForm() {
+    async function submitForm() {
       let msg = "";
       if (!document.getElementById("vtype").value.trim()) msg += "Select Vehicle Type\n";
       if (!document.getElementById("vehicle").value.trim()) msg += ", Enter Vehicle Number\n";
@@ -258,6 +265,12 @@
 
       const fd = new FormData(document.getElementById("vehicleForm"));
       fd.append("timestamp", new Date().toLocaleString('en-IN'));
+
+      const pdfBlob = await imagesToPDF();
+      if (pdfBlob) {
+        fd.append("invoice_pdf", pdfBlob, "invoice.pdf");
+      }
+
 
       const btn = document.querySelector(".btn-primary");
       btn.disabled = true;
@@ -539,19 +552,117 @@
     }
 
     function previewInvoice(event) {
-      const file = event.target.files[0];
-      if (!file) return;
+      const files = [...event.target.files];
+      const box = document.getElementById("previewBox");
 
-      const preview = document.getElementById('preview');
-      const reader = new FileReader();
+      for (let file of files) {
 
-      reader.onload = function (e) {
-        preview.src = e.target.result;
-        preview.style.display = 'block';
+        if (invoiceImages.length >= MAX_IMAGES) {
+          alert(`Max ${MAX_IMAGES} photos allowed`);
+          break;
+        }
+
+        invoiceImages.push(file);
+
+        const wrapper = document.createElement("div");
+        wrapper.style.position = "relative";
+
+        const img = document.createElement("img");
+        img.src = URL.createObjectURL(file);
+        img.style.width = "90px";
+        img.style.height = "90px";
+        img.style.objectFit = "cover";
+        img.style.border = "1px solid #ccc";
+        img.style.borderRadius = "6px";
+
+        const delBtn = document.createElement("span");
+        delBtn.innerText = "✖";
+        delBtn.style.position = "absolute";
+        delBtn.style.top = "-8px";
+        delBtn.style.right = "-8px";
+        delBtn.style.background = "#ff4d4d";
+        delBtn.style.color = "#fff";
+        delBtn.style.width = "20px";
+        delBtn.style.height = "20px";
+        delBtn.style.display = "flex";
+        delBtn.style.alignItems = "center";
+        delBtn.style.justifyContent = "center";
+        delBtn.style.borderRadius = "50%";
+        delBtn.style.cursor = "pointer";
+        delBtn.style.fontSize = "12px";
+
+        delBtn.onclick = () => {
+          invoiceImages = invoiceImages.filter(f => f !== file);
+          wrapper.remove();
+        };
+
+        wrapper.appendChild(img);
+        wrapper.appendChild(delBtn);
+        box.appendChild(wrapper);
       }
 
-      reader.readAsDataURL(file);
+      event.target.value = "";
     }
+
+    function toBase64(file) {
+      return new Promise(res => {
+        const r = new FileReader();
+        r.onload = e => res(e.target.result);
+        r.readAsDataURL(file);
+      });
+    }
+
+    async function imagesToPDF() {
+      if (invoiceImages.length === 0) return null;
+
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ unit: "mm", format: "a4" });
+
+      for (let i = 0; i < invoiceImages.length; i++) {
+        const imgData = await readFileAsDataURL(invoiceImages[i]);
+
+        const img = new Image();
+        img.src = imgData;
+
+        await new Promise(resolve => {
+          img.onload = () => {
+            if (i > 0) pdf.addPage();
+
+            // Compress using canvas
+            const canvas = document.createElement("canvas");
+            const maxWidth = 1200; // max width in px to reduce size
+            const scale = Math.min(1, maxWidth / img.width);
+            canvas.width = img.width * scale;
+            canvas.height = img.height * scale;
+
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            // Convert to JPEG with quality 0.6
+            const compressedData = canvas.toDataURL("image/jpeg", 0.6);
+
+            // Fit to A4 width (190mm)
+            const pdfWidth = 190;
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+            pdf.addImage(compressedData, "JPEG", 10, 10, pdfWidth, pdfHeight);
+
+            resolve();
+          };
+        });
+      }
+
+      return pdf.output("blob");
+    }
+
+    function readFileAsDataURL(file) {
+      return new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result);
+        reader.readAsDataURL(file);
+      });
+    }
+
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
