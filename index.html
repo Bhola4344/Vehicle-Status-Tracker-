@@ -238,12 +238,13 @@
         </div>
 
 
-        <img src="Barcode.png" alt="Barcode" class="barcode mt-3" width="150">
+        <img src="barcode.png" alt="Barcode" class="barcode mt-3" width="150">
     </div>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzZBbKWwZ33uxmJBakLEqZ8_va6xbefbeV5q9N3GjkELrXC4p0H6c6gFEGwFxvie4D9/exec";
-
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyHq1_DgYvUWO4aA9yKWOpYejQu48MhjuwrQ637mM87KM9nmvejC9el_K1E3yyb2EAa/exec";
+        const SECRET_TOKEN = "VEH@2026#SECURE";
+        const TS = () => Date.now();
         function showTab(tab) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('#loginTab,#signupTab').forEach(t => t.style.display = 'none');
@@ -290,8 +291,11 @@
                 // 🔥 FIXED — Correct Login API Call
                 const res = await fetch(
                     WEB_APP_URL +
-                    "?action=login&Username=" + username +
-                    "&Password=" + password
+                    "?action=login" +
+                    "&Username=" + username +
+                    "&Password=" + password +
+                    "&token=" + encodeURIComponent(SECRET_TOKEN) +
+                    "&ts=" + TS()
                 );
 
                 const data = await res.json();
@@ -305,13 +309,13 @@
 
                     setTimeout(() => {
                         if (data.role === "store")
-                            window.location.href = "VehicleTracker-Store.html";
+                            window.location.href = "vehicletracker-store.html";
                         else
-                            window.location.href = "VehicleTracker-Gate.html";
+                            window.location.href = "vehicletracker-gate.html";
                     }, 800);
 
                 } else {
-                    showToast("❌ Invalid Login!");
+                    showToast("❌ " + (data.message || data.msg || "Invalid Login"));
                 }
 
             } catch {
@@ -354,6 +358,8 @@
                 fd.append("Username", username);
                 fd.append("Password", password);
                 fd.append("Role", role);
+                fd.append("token", SECRET_TOKEN);
+                fd.append("ts", TS());
 
                 const res = await fetch(WEB_APP_URL, { method: "POST", body: fd });
                 const data = await res.json();
@@ -385,47 +391,81 @@
         }
 
         async function resetPassword() {
-            const btn = document.getElementById("fpBtn"); // Button ki id
+
+            const btn = document.getElementById("fpBtn");
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = "Updating...";
+            }
+
             const username = document.getElementById("fpUsername").value.trim();
             const newPassword = document.getElementById("fpNewPassword").value.trim();
             const confirmPassword = document.getElementById("fpConfirmPassword").value.trim();
 
             if (!/^[0-9]{6}$/.test(username)) {
                 showToast("❗ Enter valid 6 digit username!");
-                btn.innerText = "Set New Password"; btn.disabled = false;
+                if (btn) {
+                    btn.innerText = "Set New Password";
+                    btn.disabled = false;
+                }
                 return;
             }
 
             if (!newPassword || !confirmPassword) {
                 showToast("❗ Enter new password in both fields!");
-                btn.innerText = "Set New Password"; btn.disabled = false;
+                if (btn) {
+                    btn.innerText = "Set New Password";
+                    btn.disabled = false;
+                }
                 return;
             }
 
             if (newPassword !== confirmPassword) {
                 showToast("❗ Passwords do not match!");
-                btn.innerText = "Set New Password"; btn.disabled = false;
+                if (btn) {
+                    btn.innerText = "Set New Password";
+                    btn.disabled = false;
+                }
                 return;
             }
 
             try {
+
                 const res = await fetch(
-                    WEB_APP_URL + `?action=resetPassword&Username=${username}&NewPassword=${newPassword}`
+                    WEB_APP_URL +
+                    `?action=resetPassword` +
+                    `&Username=${username}` +
+                    `&NewPassword=${newPassword}` +
+                    `&token=${encodeURIComponent(SECRET_TOKEN)}` +
+                    `&ts=${TS()}`
                 );
+
                 const data = await res.json();
 
                 if (data.status === "success") {
+
                     showToast("✅ Password successfully changed!");
                     closeForgot();
+
                 } else {
+
                     showToast("❌ " + data.message);
+
                 }
+
             } catch (err) {
+
                 showToast("⚠ Server Error!");
                 console.error(err);
+
+            }
+
+            if (btn) {
+                btn.innerText = "Set New Password";
+                btn.disabled = false;
             }
         }
-
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -444,15 +484,11 @@
                 maxlength="6">
             <input type="password" id="fpNewPassword" class="form-control mb-2" placeholder="Enter New Password">
             <input type="password" id="fpConfirmPassword" class="form-control mb-2" placeholder="Confirm New Password">
-            <button class="btn btn-primary w-100 mt-2" onclick="resetPassword()">Set New Password</button>
+            <button id="fpBtn" class="btn btn-primary w-100 mt-2" onclick="resetPassword()">Set New Password</button>
             <button class="btn btn-secondary w-100 mt-2" onclick="closeForgot()">Close</button>
         </div>
     </div>
 
 </body>
 
-
 </html>
-
-
-
